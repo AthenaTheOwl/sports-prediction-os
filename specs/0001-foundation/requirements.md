@@ -33,5 +33,5 @@ mirrors `data/cache/understat/matches/<id>.json` so a test can point the
 cache at fixtures and skip the network entirely.
 
 ## R-FND-007 — portfolio integration (deferred to follow-up PR on athena-site)
-Door N° 19, status `active`. `ops/portfolio-manifest.yml` entry +
+Door N° 21, status `active`. `ops/portfolio-manifest.yml` entry +
 `doors.json` card live in athena-site, not here.

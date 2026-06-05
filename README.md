@@ -1,4 +1,4 @@
-# N° 19 · sports-prediction-os
+# N° 21 · sports-prediction-os
 
 An analytical OS for soccer that goes beyond match-result prediction. Built
 around **possession value** and **next-event modeling** on public event

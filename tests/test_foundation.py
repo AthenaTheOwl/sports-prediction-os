@@ -29,9 +29,9 @@ def test_R_FND_005_gate_scripts_exist() -> None:
 
 
 def test_R_FND_007_portfolio_door_is_documented() -> None:
-    """R-FND-007: README claims door N° 19; portfolio integration tracked."""
+    """R-FND-007: README claims door N° 21; portfolio integration tracked."""
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
-    assert "N° 19" in readme, "README must declare door N° 19"
+    assert "N° 21" in readme, "README must declare door N° 21"
     assert "Portfolio integration" in (
         ROOT / "specs" / "0001-foundation" / "requirements.md"
     ).read_text(encoding="utf-8") or "portfolio integration" in (
