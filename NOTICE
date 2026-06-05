@@ -1,0 +1,27 @@
+sports-prediction-os
+Copyright (c) 2026 Vignesh Gopalakrishnan
+
+Licensed under the MIT License.
+
+This project relies on third-party datasets and libraries:
+
+socceraction
+  https://github.com/ML-KULeuven/socceraction
+  Licensed under the MIT License.
+  Citation: Decroos et al., "Actions Speak Louder than Goals: Valuing
+  Player Actions in Soccer" (KDD 2019); Karun Singh, xT (2019).
+
+StatsBomb Open Data
+  https://github.com/statsbomb/open-data
+  Licensed under CC BY-NC-SA 4.0 with additional terms; see the StatsBomb
+  open-data license file for full conditions. Derived data inherits the
+  non-commercial + share-alike restriction.
+
+Understat
+  https://understat.com/
+  Publicly accessible match + xG data. This project respects robots.txt
+  and caches all responses on disk to minimize fetch volume.
+
+OpenSTARLab (optional, v1+)
+  https://github.com/open-starlab
+  Licensed under Apache-2.0.

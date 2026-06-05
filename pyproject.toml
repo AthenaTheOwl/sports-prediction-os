@@ -1,0 +1,43 @@
+[project]
+name = "sports-prediction-os"
+version = "0.0.1"
+description = "Analytical OS for soccer event data — possession value + next-event modeling beyond match-result prediction."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Vignesh Gopalakrishnan" }]
+dependencies = [
+    "httpx>=0.27.0",
+    "pydantic>=2.9.0",
+    "pyyaml>=6.0.2",
+    "rich>=13.9.0",
+    "pandas>=2.2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.0",
+    "ruff>=0.7.0",
+]
+streamlit = [
+    "streamlit>=1.40.0",
+]
+# Value-layer wraps socceraction. Optional because the package pulls
+# numpy + scipy + scikit-learn; lighter dev paths can skip it.
+value = [
+    "socceraction>=1.5.0",
+]
+
+[project.scripts]
+sports-os = "sports_os.cli:main"
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"

@@ -1,0 +1,38 @@
+[
+  {
+    "id": "fixture-shot-1",
+    "minute": 12,
+    "player": "Bukayo Saka",
+    "team": "Arsenal",
+    "x": 92.0,
+    "y": 50.0,
+    "xG": 0.31,
+    "result": "Goal",
+    "situation": "OpenPlay",
+    "body_part": "RightFoot"
+  },
+  {
+    "id": "fixture-shot-2",
+    "minute": 27,
+    "player": "Mohamed Salah",
+    "team": "Liverpool",
+    "x": 88.0,
+    "y": 62.0,
+    "xG": 0.18,
+    "result": "SavedShot",
+    "situation": "OpenPlay",
+    "body_part": "RightFoot"
+  },
+  {
+    "id": "fixture-shot-3",
+    "minute": 64,
+    "player": "Bukayo Saka",
+    "team": "Arsenal",
+    "x": 94.0,
+    "y": 48.0,
+    "xG": 0.42,
+    "result": "Goal",
+    "situation": "OpenPlay",
+    "body_part": "LeftFoot"
+  }
+]

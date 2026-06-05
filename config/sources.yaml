@@ -1,0 +1,76 @@
+# Source registry — sports-prediction-os
+#
+# Single source of truth for which providers + leagues + seasons are in
+# scope for ingestion. Adding a new provider = (1) new entry in this file,
+# (2) corresponding fetcher under src/sports_os/sources/, (3) tests.
+#
+# Schema: see schemas/source.schema.json.
+
+version: 1
+last_curated: 2026-06-05
+
+providers:
+  - id: understat
+    name: Understat
+    kind: free-web
+    base_url: https://understat.com
+    rate_limit_per_sec: 0.5
+    cache_ttl_days: 7
+    license: "Publicly accessible; respect robots.txt"
+    status: active
+    leagues_supported:
+      - EPL
+      - La_liga
+      - Bundesliga
+      - Serie_A
+      - Ligue_1
+      - RFPL
+
+  - id: statsbomb-open
+    name: StatsBomb Open Data
+    kind: github-static
+    base_url: https://raw.githubusercontent.com/statsbomb/open-data/master
+    rate_limit_per_sec: 1.0
+    cache_ttl_days: 30
+    license: "CC BY-NC-SA 4.0 + StatsBomb additional terms"
+    status: active
+    notes: >-
+      Open-data subset, not the full feed. Coverage is uneven across leagues
+      but verified-event quality is high. Derived data inherits NC-SA.
+
+leagues:
+  - id: EPL
+    name: English Premier League
+    season_start_month: 8
+    seasons_in_scope: ["2024-25", "2025-26"]
+    priority: 1
+
+  - id: La_liga
+    name: La Liga
+    season_start_month: 8
+    seasons_in_scope: ["2024-25", "2025-26"]
+    priority: 2
+
+  - id: Bundesliga
+    name: Bundesliga
+    season_start_month: 8
+    seasons_in_scope: ["2024-25", "2025-26"]
+    priority: 3
+
+  - id: Serie_A
+    name: Serie A
+    season_start_month: 8
+    seasons_in_scope: ["2024-25", "2025-26"]
+    priority: 4
+
+  - id: Ligue_1
+    name: Ligue 1
+    season_start_month: 8
+    seasons_in_scope: ["2024-25", "2025-26"]
+    priority: 5
+
+  - id: RFPL
+    name: Russian Premier League
+    season_start_month: 7
+    seasons_in_scope: ["2024-25", "2025-26"]
+    priority: 6
