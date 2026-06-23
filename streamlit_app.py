@@ -4,6 +4,11 @@ Reads the committed sample match artifact (data/sample/match-26618.json)
 directly — paths are relative to this file, no network, no secrets. Mirrors
 the `sports-os show` verb: a ranked shot table by xG, per-team summary, and
 a one-line headline finding, with one interactive control (xG threshold).
+
+Below that committed view, an interactive section drives the real engine:
+the user edits a match (or pastes their own shots) and we call
+`sports_os.analysis.load_report`, the same value layer the `show` verb uses,
+recomputing the ranked report, per-team xG rollups, and the headline finding.
 """
 
 from __future__ import annotations
@@ -119,3 +124,129 @@ ranked = (
 )
 st.dataframe(ranked, hide_index=True, use_container_width=True)
 st.caption(f"{len(ranked)} of {len(shots)} shots at or above {threshold:.2f} xG.")
+
+# ---------------------------------------------------------------------------
+# Run the real analysis engine live. Everything above reads the committed
+# artifact straight off disk. Below, the user edits a match (or pastes their
+# own shots) and we call sports_os.analysis.load_report — the SAME function
+# the `sports-os show` verb and the table above ultimately model. It builds the
+# ranked MatchReport, the per-team xG rollups, and the headline() finding. Edit
+# the shots, watch the scoreline, the G-xG, and the finding recompute.
+# ---------------------------------------------------------------------------
+st.divider()
+st.subheader("analyze your own match")
+st.caption(
+    "drive the actual engine — `sports_os.analysis.load_report` — on a match you "
+    "edit. change a shot's xG or result, add a shot, flip the score, and the "
+    "ranked report + the one-line finding recompute live. it's the real value "
+    "layer, not the lookup above."
+)
+
+try:
+    import sys
+    import tempfile
+
+    sys.path.insert(0, str(HERE / "src"))
+    from sports_os.analysis import load_report
+
+    default_doc = {
+        "match_id": match.get("match_id", ""),
+        "league": match.get("league", ""),
+        "season": match.get("season", ""),
+        "datetime": match.get("datetime", ""),
+        "h_team": h_team,
+        "a_team": a_team,
+        "h_goals": match.get("h_goals", 0),
+        "a_goals": match.get("a_goals", 0),
+        "shots": match.get("shots", []),
+    }
+
+    st.caption(
+        "a shot needs at least `team`, `xG`, and `result`. set `result` to "
+        '`"Goal"` to count it as a goal. teams must be `h_team` / `a_team` above.'
+    )
+    raw = st.text_area(
+        "match json (edit me)",
+        value=json.dumps(default_doc, indent=2),
+        height=320,
+        help="this exact text is parsed and fed to the real load_report engine.",
+    )
+
+    run = st.button("run load_report", type="primary")
+    if run:
+        try:
+            doc = json.loads(raw)
+        except json.JSONDecodeError as exc:
+            st.error(f"that isn't valid json: {exc}")
+        else:
+            # load_report takes a path, so we hand the engine a real temp file.
+            with tempfile.NamedTemporaryFile(
+                mode="w", suffix=".json", delete=False, encoding="utf-8"
+            ) as tmp:
+                json.dump(doc, tmp)
+                tmp_path = tmp.name
+            try:
+                report = load_report(tmp_path)
+            except (KeyError, ValueError, TypeError) as exc:
+                st.error(
+                    f"the engine rejected this match ({type(exc).__name__}: {exc}). "
+                    "check that h_team / a_team and every shot's fields are present."
+                )
+            else:
+                st.markdown(f"#### {report.scoreline}")
+                st.caption(
+                    f"{report.league} {report.season} - {report.datetime} - "
+                    f"{len(report.shots)} shots, {report.total_xG:.2f} total xG"
+                )
+
+                t1, t2, t3 = st.columns(3)
+                t1.metric("shots", len(report.shots))
+                t2.metric("total xG", f"{report.total_xG:.2f}")
+                t3.metric(
+                    "goals", sum(t.goals for t in report.teams)
+                )
+
+                live_team_df = pd.DataFrame(
+                    [
+                        {
+                            "team": t.team,
+                            "shots": t.shots,
+                            "xG": round(t.xG, 2),
+                            "goals": t.goals,
+                            "G-xG": round(t.xG_diff, 2),
+                        }
+                        for t in report.teams
+                    ]
+                )
+                st.markdown("##### team summary (recomputed)")
+                st.dataframe(live_team_df, hide_index=True, use_container_width=True)
+
+                st.markdown("##### top shots by xG (recomputed)")
+                top_df = pd.DataFrame(
+                    [
+                        {
+                            "minute": s.minute,
+                            "player": s.player,
+                            "team": s.team,
+                            "xG": s.xG,
+                            "result": s.result,
+                            "goal": s.is_goal,
+                        }
+                        for s in report.top_shots(10)
+                    ]
+                )
+                st.dataframe(top_df, hide_index=True, use_container_width=True)
+
+                st.success(f"**finding:** {report.headline()}")
+                st.caption(
+                    "this finding is `report.headline()` straight off the engine — "
+                    "edit a shot above and re-run to watch which side's finishing "
+                    "ran ahead of (or behind) its xG change."
+                )
+    else:
+        st.caption("edit the json above, then press **run load_report** to recompute.")
+except Exception as exc:  # pragma: no cover - defensive for cloud import differences
+    st.info(
+        f"interactive analysis needs the package importable ({exc}). "
+        "the committed read above still renders."
+    )
