@@ -1,6 +1,7 @@
 """Top-level CLI for sports-prediction-os.
 
 Subcommands:
+  show                 — print a ranked, readable read of the committed sample match
   registry             — print the parsed source registry
   ingest               — fetch + cache one provider's data for a (league, season, scope)
   analyze              — run the value layer on a cached match (placeholder in v0)
@@ -16,12 +17,75 @@ import json
 import sys
 from pathlib import Path
 
+from .analysis import SAMPLE_MATCH, load_report
 from .registry import load_registry
 from .sources.understat import (
     DEFAULT_CACHE as UNDERSTAT_CACHE,
     FetchError,
     fetch_match_shots,
 )
+
+
+def _cmd_show(_args: argparse.Namespace) -> int:
+    """No-arg, offline, read-only read of the committed sample match.
+
+    Prints a ranked shot table (by xG), a per-team summary, and a
+    one-line headline finding. Nothing here touches the network.
+    """
+    from rich.console import Console
+    from rich.table import Table
+
+    if not SAMPLE_MATCH.exists():
+        print(
+            f"no sample match artifact at {SAMPLE_MATCH} — "
+            "expected a committed data/sample/*.json file.",
+            file=sys.stderr,
+        )
+        return 1
+
+    report = load_report()
+    console = Console()
+
+    console.print(
+        f"[bold]{report.scoreline}[/bold]  "
+        f"[dim]{report.league} {report.season} - {report.datetime}[/dim]"
+    )
+    console.print(
+        f"[dim]{len(report.shots)} shots - {report.total_xG:.2f} total xG[/dim]\n"
+    )
+
+    teams = Table(title="team summary")
+    teams.add_column("team")
+    teams.add_column("shots", justify="right")
+    teams.add_column("xG", justify="right")
+    teams.add_column("goals", justify="right")
+    teams.add_column("G-xG", justify="right")
+    for t in report.teams:
+        teams.add_row(
+            t.team,
+            str(t.shots),
+            f"{t.xG:.2f}",
+            str(t.goals),
+            f"{t.xG_diff:+.2f}",
+        )
+    console.print(teams)
+
+    shots = Table(title="top shots by xG")
+    shots.add_column("#", justify="right")
+    shots.add_column("min", justify="right")
+    shots.add_column("player")
+    shots.add_column("team")
+    shots.add_column("xG", justify="right")
+    shots.add_column("result")
+    for i, s in enumerate(report.top_shots(5), start=1):
+        marker = "[green]GOAL[/green]" if s.is_goal else s.result
+        shots.add_row(
+            str(i), str(s.minute), s.player, s.team, f"{s.xG:.2f}", marker
+        )
+    console.print(shots)
+
+    console.print(f"\n[bold]finding:[/bold] {report.headline()}")
+    return 0
 
 
 def _cmd_registry(args: argparse.Namespace) -> int:
@@ -73,6 +137,12 @@ def build_parser() -> argparse.ArgumentParser:
         description="Sports prediction OS — soccer event-data analysis.",
     )
     sub = parser.add_subparsers(dest="command", required=True)
+
+    show = sub.add_parser(
+        "show",
+        help="print a ranked, readable read of the committed sample match",
+    )
+    show.set_defaults(func=_cmd_show)
 
     reg = sub.add_parser("registry", help="dump the parsed source registry")
     reg.add_argument(

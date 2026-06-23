@@ -1,0 +1,26 @@
+{
+  "match_id": "26618",
+  "provider": "understat",
+  "league": "EPL",
+  "season": "2024-25",
+  "datetime": "2025-04-12 16:30:00",
+  "h_team": "Arsenal",
+  "a_team": "Liverpool",
+  "h_goals": 2,
+  "a_goals": 2,
+  "note": "Committed sample artifact. Shot-level data shaped like the Understat fetcher output (sources/understat.py Shot model). Offline; no network. Used by `sports-os show` and streamlit_app.py.",
+  "shots": [
+    {"id": "s01", "minute": 9, "player": "Bukayo Saka", "team": "Arsenal", "x": 0.91, "y": 0.52, "xG": 0.27, "result": "Goal", "situation": "OpenPlay", "body_part": "RightFoot"},
+    {"id": "s02", "minute": 18, "player": "Mohamed Salah", "team": "Liverpool", "x": 0.88, "y": 0.61, "xG": 0.19, "result": "SavedShot", "situation": "OpenPlay", "body_part": "LeftFoot"},
+    {"id": "s03", "minute": 24, "player": "Kai Havertz", "team": "Arsenal", "x": 0.86, "y": 0.45, "xG": 0.11, "result": "MissedShots", "situation": "OpenPlay", "body_part": "Head"},
+    {"id": "s04", "minute": 33, "player": "Luis Diaz", "team": "Liverpool", "x": 0.93, "y": 0.50, "xG": 0.41, "result": "Goal", "situation": "OpenPlay", "body_part": "RightFoot"},
+    {"id": "s05", "minute": 39, "player": "Martin Odegaard", "team": "Arsenal", "x": 0.80, "y": 0.55, "xG": 0.07, "result": "BlockedShot", "situation": "OpenPlay", "body_part": "RightFoot"},
+    {"id": "s06", "minute": 45, "player": "Mohamed Salah", "team": "Liverpool", "x": 0.89, "y": 0.49, "xG": 0.76, "result": "Goal", "situation": "Penalty", "body_part": "LeftFoot"},
+    {"id": "s07", "minute": 52, "player": "Gabriel Jesus", "team": "Arsenal", "x": 0.94, "y": 0.47, "xG": 0.33, "result": "SavedShot", "situation": "OpenPlay", "body_part": "RightFoot"},
+    {"id": "s08", "minute": 61, "player": "Bukayo Saka", "team": "Arsenal", "x": 0.85, "y": 0.63, "xG": 0.14, "result": "MissedShots", "situation": "FromCorner", "body_part": "LeftFoot"},
+    {"id": "s09", "minute": 70, "player": "Cody Gakpo", "team": "Liverpool", "x": 0.90, "y": 0.44, "xG": 0.22, "result": "SavedShot", "situation": "OpenPlay", "body_part": "RightFoot"},
+    {"id": "s10", "minute": 78, "player": "Kai Havertz", "team": "Arsenal", "x": 0.92, "y": 0.51, "xG": 0.48, "result": "Goal", "situation": "OpenPlay", "body_part": "Head"},
+    {"id": "s11", "minute": 84, "player": "Martin Odegaard", "team": "Arsenal", "x": 0.82, "y": 0.58, "xG": 0.09, "result": "MissedShots", "situation": "OpenPlay", "body_part": "RightFoot"},
+    {"id": "s12", "minute": 90, "player": "Darwin Nunez", "team": "Liverpool", "x": 0.95, "y": 0.50, "xG": 0.55, "result": "SavedShot", "situation": "OpenPlay", "body_part": "RightFoot"}
+  ]
+}

@@ -56,10 +56,34 @@ git clone https://github.com/AthenaTheOwl/sports-prediction-os
 cd sports-prediction-os
 uv sync
 uv run sports-os --help
-uv run streamlit run app.py
+uv run sports-os show        # ranked read of the committed sample match
 ```
 
 See [docs/playbook.md](docs/playbook.md) for the weekly run.
+
+## live demo
+
+`sports-os show` and the Streamlit app both read the same committed sample
+match (`data/sample/match-26618.json`) — offline, no network, no secrets.
+The `show` verb ranks the match's shots by xG, rolls them up per team, and
+prints a one-line headline finding (which side out-scored its own xG).
+
+Run the app locally:
+
+```bash
+uv run sports-os show                       # CLI: ranked table + finding
+pip install -r requirements.txt
+streamlit run streamlit_app.py              # browser: same read, interactive
+```
+
+The Streamlit page renders the scoreline, three metrics (shots / total xG /
+goals), a per-team summary, an xG-threshold slider over the ranked shot
+list, and the headline callout.
+
+Deploy on Streamlit Community Cloud: repo `AthenaTheOwl/sports-prediction-os`,
+branch `main`, main file `streamlit_app.py`.
+
+<!-- live-url: (paste the Streamlit Cloud URL here once deployed) -->
 
 ## Status
 
