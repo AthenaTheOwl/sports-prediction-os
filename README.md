@@ -63,7 +63,9 @@ See [docs/playbook.md](docs/playbook.md) for the weekly run.
 
 ## Status
 
-v0 scaffold landing 2026-06-05. Tracker:
+v0.1 partial — the ingest + analyze CLI and the Understat fetcher (with offline
+fixture fallback) run today; the socceraction/StatsBomb integration, the Streamlit
+demo, and the first weekly eval run are the next passes. Tracker:
 
 - [x] Repo scaffold + spec 0001 (foundation)
 - [x] Understat fetcher with offline fixture fallback
