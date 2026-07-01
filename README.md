@@ -126,5 +126,5 @@ Streamlit demo, and the first weekly eval run are the next passes. See
 
 MIT (code). Derived data inherits the StatsBomb terms cascade (NC-SA), documented
 per dataset. See [LICENSE](LICENSE).
-</content>
-</invoke>
+
+Portfolio: door N° 21 in the AthenaTheOwl portfolio.
