@@ -37,6 +37,19 @@ def test_headline_is_nonempty_string() -> None:
     assert isinstance(line, str) and line
 
 
+def test_headline_pins_leader_branch_for_sample() -> None:
+    # Golden lock on the branch selector in MatchReport.headline. The sample's
+    # leader (Arsenal) overperformed its xG by +0.51, which must land on the
+    # "scoreline ran ahead" text — not the "finished close" tie branch. Pinning
+    # the literal here means a shifted `abs(gap) < 0.05` threshold breaks the
+    # test instead of silently rerouting the finding.
+    report = load_report()
+    line = report.headline()
+    assert line.startswith("Arsenal scored 2 from 1.49 xG (+0.51)")
+    assert "the scoreline ran ahead of the chances created" in line
+    assert "both sides finished close" not in line
+
+
 def test_show_verb_runs_offline_and_prints_ranked_result() -> None:
     buf = io.StringIO()
     with redirect_stdout(buf):

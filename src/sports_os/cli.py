@@ -17,6 +17,9 @@ import json
 import sys
 from pathlib import Path
 
+import yaml
+from pydantic import ValidationError
+
 from .analysis import SAMPLE_MATCH, load_report
 from .registry import load_registry
 from .sources.understat import (
@@ -89,7 +92,16 @@ def _cmd_show(_args: argparse.Namespace) -> int:
 
 
 def _cmd_registry(args: argparse.Namespace) -> int:
-    reg = load_registry(args.registry) if args.registry else load_registry()
+    path = args.registry
+    try:
+        reg = load_registry(path) if path else load_registry()
+    except (OSError, yaml.YAMLError, ValidationError) as exc:
+        # Name the input and fold the reason onto one line — a missing file,
+        # a directory, malformed YAML, or a wrong-shape document all land here
+        # instead of dumping a stack trace at the user.
+        target = path if path is not None else "config/sources.yaml"
+        print(f"registry load failed: {target}: {exc}", file=sys.stderr)
+        return 1
     print(json.dumps(reg.model_dump(), indent=2, default=str))
     return 0
 

@@ -57,6 +57,28 @@ def test_R_OPS_002_canonical_id_is_content_sensitive() -> None:
         assert other != base
 
 
+def test_R_OPS_002_canonical_id_is_16_hex_chars() -> None:
+    # The canonical_id docstring promises "a 16-char hex prefix" and that width
+    # is the load-bearing contract (RunManifest.id only enforces min_length=12).
+    # Pin the width and the alphabet so a narrowed slice fails here.
+    rid = canonical_id(RunKind.INGEST, ["a"], ["b"], "sha", "fix")
+    assert len(rid) == 16
+    assert all(c in "0123456789abcdef" for c in rid)
+
+
+def test_R_OPS_002_written_filename_hash_is_16_chars(tmp_path: Path) -> None:
+    _, path = write_manifest(
+        RunKind.INGEST,
+        inputs=["x"],
+        outputs=["y"],
+        run_date="2026-06-05",
+        ledger_root=tmp_path,
+    )
+    # Filename is `<kind>-<rid>.json`; the hash segment must stay 16 chars.
+    hash_segment = path.stem.split("-", 1)[1]
+    assert len(hash_segment) == 16
+
+
 def test_R_OPS_003_path_layout_is_yyyy_mm_dd(tmp_path: Path) -> None:
     _, path = write_manifest(
         RunKind.INGEST,
