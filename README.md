@@ -11,7 +11,7 @@ what the keeper let in — and tells you which side the scoreboard flattered.
 Most public soccer projects predict the winner. That's a crowded, boring corner —
 the result of a match is the least information-dense thing about it. The interesting
 signal lives one layer down, in possession value and shot quality: who created the
-better chances, who converted above or below them, which actions actually moved the
+better chances, who converted above or below them, which actions moved the
 ball toward a goal.
 
 So this reads matches, not outcomes. v0 ships an xG analysis off a committed sample
@@ -23,7 +23,7 @@ never touches the network), and the value layer leans on
 VAEP and xT off SPADL action streams — battle-tested primitives, wrapped, not
 reinvented. There's a weekly eval loop in the plan: hold out the most recent
 matchday, recompute on the prior four weeks, and check whether the highest-value
-actions on Saturday matched the goals and assists that actually happened. A loop,
+actions on Saturday matched the goals and assists that happened. A loop,
 not a one-shot demo.
 
 It is not a betting product. No live feed, no money in the loop — just an honest
