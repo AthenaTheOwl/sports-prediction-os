@@ -86,20 +86,27 @@ team_df = pd.DataFrame(team_rows)
 
 leader = max(team_rows, key=lambda r: r["G-xG"])
 gap = leader["G-xG"]
-if abs(gap) < 0.05:
-    headline = (
-        f"both sides finished close to their xG "
-        f"({total_xg:.2f} total xG across {len(shots)} shots)."
-    )
-elif gap > 0:
+xg_leader = max(team_rows, key=lambda r: r["xG"])
+laggard = min(team_rows, key=lambda r: r["G-xG"])
+if gap >= 0.05:
     headline = (
         f"{leader['team']} scored {leader['goals']} from {leader['xG']:.2f} xG "
         f"(+{gap:.2f}) - the scoreline ran ahead of the chances created."
     )
+elif all(abs(r["G-xG"]) < 0.05 for r in team_rows):
+    headline = (
+        f"both sides finished close to their xG "
+        f"({total_xg:.2f} total xG across {len(shots)} shots)."
+    )
+elif xg_leader["G-xG"] <= -0.05:
+    headline = (
+        f"{xg_leader['team']} led the xG count yet the finishing lagged "
+        f"({xg_leader['goals']} goals from {xg_leader['xG']:.2f} xG)."
+    )
 else:
     headline = (
-        f"{leader['team']} led the xG count yet the finishing lagged "
-        f"({leader['goals']} goals from {leader['xG']:.2f} xG)."
+        f"{laggard['team']} finished below its xG "
+        f"({laggard['goals']} goals from {laggard['xG']:.2f} xG)."
     )
 st.info(headline)
 

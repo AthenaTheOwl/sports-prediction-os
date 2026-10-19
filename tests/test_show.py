@@ -61,3 +61,49 @@ def test_show_verb_runs_offline_and_prints_ranked_result() -> None:
     assert "finding:" in out
     # The ranked headline shot should appear in the output.
     assert "Mohamed Salah" in out
+
+
+def _report_from(tmp_path, home: list[tuple[float, bool]], away: list[tuple[float, bool]]):
+    import json
+
+    shots = [
+        {"id": f"{side}{i}", "minute": i, "player": "p", "team": team, "xG": xg,
+         "result": "Goal" if goal else "SavedShot"}
+        for side, team, rows in (("h", "Home", home), ("a", "Away", away))
+        for i, (xg, goal) in enumerate(rows)
+    ]
+    doc = {"h_team": "Home", "a_team": "Away",
+           "h_goals": sum(g for _, g in home), "a_goals": sum(g for _, g in away),
+           "shots": shots}
+    path = tmp_path / "headline.json"
+    path.write_text(json.dumps(doc), encoding="utf-8")
+    return load_report(path)
+
+
+def test_headline_names_the_real_xg_leader_when_both_sides_fall_short(tmp_path) -> None:
+    # Home 1 from 1.20 (-0.20) underperformed least, but Away created more xG.
+    report = _report_from(tmp_path, [(0.6, True), (0.6, False)], [(0.75, False), (0.75, False)])
+    assert report.headline() == (
+        "Away led the xG count yet the finishing lagged (0 goals from 1.50 xG)."
+    )
+
+
+def test_headline_close_wording_requires_every_side_close(tmp_path) -> None:
+    # Home 0 from 0.03 is close; Away 0 from 2.50 is not.
+    report = _report_from(tmp_path, [(0.03, False)], [(1.0, False), (1.0, False), (0.5, False)])
+    line = report.headline()
+    assert "both sides finished close" not in line
+    assert line == "Away led the xG count yet the finishing lagged (0 goals from 2.50 xG)."
+
+
+def test_headline_names_the_side_that_fell_short_when_xg_leader_was_close(tmp_path) -> None:
+    # Home 1 from 0.98 (+0.02) led the xG count and finished close; Away fell short.
+    report = _report_from(tmp_path, [(0.49, True), (0.49, False)], [(0.6, False)])
+    assert report.headline() == "Away finished below its xG (0 goals from 0.60 xG)."
+
+
+def test_headline_both_close_when_every_side_is_within_threshold(tmp_path) -> None:
+    report = _report_from(tmp_path, [(0.49, True), (0.49, False)], [(0.03, False)])
+    assert report.headline() == (
+        "Home 1-0 Away: both sides finished close to their xG (1.01 total xG across 3 shots)."
+    )

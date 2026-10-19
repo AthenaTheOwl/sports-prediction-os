@@ -87,19 +87,28 @@ class MatchReport:
             return "no shot data in artifact."
         leader = max(self.teams, key=lambda t: t.xG_diff)
         gap = leader.xG_diff
-        if abs(gap) < 0.05:
-            return (
-                f"{self.scoreline}: both sides finished close to their xG "
-                f"({self.total_xG:.2f} total xG across {len(self.shots)} shots)."
-            )
-        if gap > 0:
+        if gap >= 0.05:
             return (
                 f"{leader.team} scored {leader.goals} from {leader.xG:.2f} xG "
                 f"(+{gap:.2f}) - the scoreline ran ahead of the chances created."
             )
+        if all(abs(t.xG_diff) < 0.05 for t in self.teams):
+            return (
+                f"{self.scoreline}: both sides finished close to their xG "
+                f"({self.total_xG:.2f} total xG across {len(self.shots)} shots)."
+            )
+        # No side beat its xG, and at least one fell short. Only call a side
+        # the xG leader when it actually created the most xG.
+        xg_leader = max(self.teams, key=lambda t: t.xG)
+        if xg_leader.xG_diff <= -0.05:
+            return (
+                f"{xg_leader.team} led the xG count yet the finishing lagged "
+                f"({xg_leader.goals} goals from {xg_leader.xG:.2f} xG)."
+            )
+        laggard = min(self.teams, key=lambda t: t.xG_diff)
         return (
-            f"{leader.team} led the xG count yet the finishing lagged "
-            f"({leader.goals} goals from {leader.xG:.2f} xG)."
+            f"{laggard.team} finished below its xG "
+            f"({laggard.goals} goals from {laggard.xG:.2f} xG)."
         )
 
 
