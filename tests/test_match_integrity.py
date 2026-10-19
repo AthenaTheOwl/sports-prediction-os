@@ -30,7 +30,9 @@ def test_scoreline_requires_nonnegative_integer_goals(tmp_path, value):
         load_report(_write(tmp_path, lambda d: d.update(h_goals=value)))
 
 
-def test_partial_shot_feed_is_not_summarized_as_a_complete_match(tmp_path):
+def test_missing_goal_shot_is_rejected(tmp_path):
+    # Sample shot s01 is a Goal, so dropping it breaks the score check. A feed
+    # missing only non-goal shots still loads; see docs/match-integrity-and-evaluation.md.
     with pytest.raises(ValueError, match="disagrees with scoreline"):
         load_report(_write(tmp_path, lambda d: d["shots"].pop(0)))
 
