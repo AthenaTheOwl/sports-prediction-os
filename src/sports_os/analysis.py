@@ -11,6 +11,7 @@ the contract those richer numbers will slot into.
 from __future__ import annotations
 
 import json
+import math
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -105,11 +106,32 @@ class MatchReport:
 def load_report(path: Path | str = SAMPLE_MATCH) -> MatchReport:
     """Load the committed sample match into a ranked MatchReport. Offline."""
     data = json.loads(Path(path).read_text(encoding="utf-8"))
+    if not isinstance(data, dict):
+        raise ValueError("match artifact must be an object")
+    home, away = data.get("h_team"), data.get("a_team")
+    if any(not isinstance(team, str) or not team.strip() for team in (home, away)) or home == away:
+        raise ValueError("home and away teams must be distinct non-empty names")
+    if not isinstance(data.get("shots"), list):
+        raise ValueError("shots must be a list")
+    goals = {home: _nonnegative_integer(data.get("h_goals"), "h_goals"),
+             away: _nonnegative_integer(data.get("a_goals"), "a_goals")}
+    for index, row in enumerate(data["shots"]):
+        if not isinstance(row, dict):
+            raise ValueError(f"shot {index} must be an object")
+        if row.get("team") not in (home, away):
+            raise ValueError(f"shot {index} team must match home or away")
+        try:
+            xg = float(row["xG"])
+        except (KeyError, ValueError, TypeError, OverflowError) as exc:
+            raise ValueError(f"shot {index} xG must be a finite probability") from exc
+        if isinstance(row["xG"], bool) or not math.isfinite(xg) or not 0 <= xg <= 1:
+            raise ValueError(f"shot {index} xG must be a finite probability in [0, 1]")
+        _nonnegative_integer(row.get("minute", 0), f"shot {index} minute")
 
     shots = [
         Shot(
             id=str(row.get("id", "")),
-            minute=int(row.get("minute", 0)),
+            minute=_nonnegative_integer(row.get("minute", 0), "minute"),
             player=str(row.get("player", "")),
             team=str(row.get("team", "")),
             xG=float(row.get("xG", 0.0)),
@@ -123,6 +145,8 @@ def load_report(path: Path | str = SAMPLE_MATCH) -> MatchReport:
     teams: list[TeamLine] = []
     for team in (data["h_team"], data["a_team"]):
         team_shots = [s for s in shots if s.team == team]
+        if sum(s.is_goal for s in team_shots) != goals[team]:
+            raise ValueError(f"{team}: shot goal total disagrees with scoreline; normalize incomplete or own-goal feeds first")
         teams.append(
             TeamLine(
                 team=team,
@@ -138,9 +162,19 @@ def load_report(path: Path | str = SAMPLE_MATCH) -> MatchReport:
         season=str(data.get("season", "")),
         h_team=str(data["h_team"]),
         a_team=str(data["a_team"]),
-        h_goals=int(data.get("h_goals", 0)),
-        a_goals=int(data.get("a_goals", 0)),
+        h_goals=goals[home],
+        a_goals=goals[away],
         datetime=str(data.get("datetime", "")),
         shots=shots,
         teams=teams,
     )
+
+
+def _nonnegative_integer(value: object, label: str) -> int:
+    try:
+        number = float(value)
+    except (ValueError, TypeError, OverflowError) as exc:
+        raise ValueError(f"{label} must be a non-negative integer") from exc
+    if isinstance(value, bool) or not math.isfinite(number) or number < 0 or not number.is_integer():
+        raise ValueError(f"{label} must be a non-negative integer")
+    return int(number)
