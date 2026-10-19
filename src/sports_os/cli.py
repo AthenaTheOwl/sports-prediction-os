@@ -46,7 +46,11 @@ def _cmd_show(_args: argparse.Namespace) -> int:
         )
         return 1
 
-    report = load_report()
+    try:
+        report = load_report()
+    except (OSError, ValueError) as exc:
+        print(f"match artifact invalid: {exc}", file=sys.stderr)
+        return 1
     console = Console()
 
     console.print(

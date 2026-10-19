@@ -128,3 +128,7 @@ MIT (code). Derived data inherits the StatsBomb terms cascade (NC-SA), documente
 per dataset. See [LICENSE](LICENSE).
 
 Portfolio: door N° 21 in the AthenaTheOwl portfolio.
+
+## Method update
+
+[A shot-quality summary requires a coherent match artifact](docs/match-integrity-and-evaluation.md).
