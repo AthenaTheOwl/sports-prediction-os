@@ -35,6 +35,39 @@ def test_partial_shot_feed_is_not_summarized_as_a_complete_match(tmp_path):
         load_report(_write(tmp_path, lambda d: d["shots"].pop(0)))
 
 
+def test_top_level_must_be_an_object(tmp_path):
+    path = tmp_path / "list.json"
+    path.write_text(json.dumps([]), encoding="utf-8")
+    with pytest.raises(ValueError, match="match artifact must be an object"):
+        load_report(path)
+
+
+def test_home_and_away_must_be_distinct(tmp_path):
+    with pytest.raises(ValueError, match="distinct"):
+        load_report(_write(tmp_path, lambda d: d.update(a_team=d["h_team"])))
+
+
+def test_shots_must_be_a_list(tmp_path):
+    with pytest.raises(ValueError, match="shots must be a list"):
+        load_report(_write(tmp_path, lambda d: d.update(shots={})))
+
+
+def test_each_shot_must_be_an_object(tmp_path):
+    with pytest.raises(ValueError, match="shot 0 must be an object"):
+        load_report(_write(tmp_path, lambda d: d["shots"].__setitem__(0, [1])))
+
+
+@pytest.mark.parametrize("value", [-1, 1.5, "x"])
+def test_shot_minute_requires_nonnegative_integer(tmp_path, value):
+    with pytest.raises(ValueError, match="shot 0 minute"):
+        load_report(_write(tmp_path, lambda d: d["shots"][0].update(minute=value)))
+
+
+def test_away_goals_require_nonnegative_integer(tmp_path):
+    with pytest.raises(ValueError, match="a_goals"):
+        load_report(_write(tmp_path, lambda d: d.update(a_goals=-1)))
+
+
 def test_cli_reports_invalid_artifact_without_a_traceback(monkeypatch, capsys):
     from sports_os import cli
 
