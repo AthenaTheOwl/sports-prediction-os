@@ -137,8 +137,9 @@ st.divider()
 st.subheader("analyze your own match")
 st.caption(
     "drive the actual engine — `sports_os.analysis.load_report` — on a match you "
-    "edit. change a shot's xG or result, add a shot, flip the score, and the "
-    "ranked report + the one-line finding recompute live. it's the real value "
+    "edit. change a shot's xG, add a shot, or turn a shot into a goal (and bump "
+    "that side's score to match), and the ranked report + the one-line finding "
+    "recompute live. it's the real value "
     "layer, not the lookup above."
 )
 
@@ -163,7 +164,8 @@ try:
 
     st.caption(
         "a shot needs at least `team`, `xG`, and `result`. set `result` to "
-        '`"Goal"` to count it as a goal. teams must be `h_team` / `a_team` above.'
+        '`"Goal"` to count it as a goal. teams must be `h_team` / `a_team` above, '
+        "and `h_goals` / `a_goals` must equal each side's `\"Goal\"` shots."
     )
     raw = st.text_area(
         "match json (edit me)",
@@ -190,7 +192,8 @@ try:
             except (KeyError, ValueError, TypeError) as exc:
                 st.error(
                     f"the engine rejected this match ({type(exc).__name__}: {exc}). "
-                    "check that h_team / a_team and every shot's fields are present."
+                    "check that h_team / a_team and every shot's fields are present, "
+                    "and that each side's score matches its `Goal` shots."
                 )
             else:
                 st.markdown(f"#### {report.scoreline}")
