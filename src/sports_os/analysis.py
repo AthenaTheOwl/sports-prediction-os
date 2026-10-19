@@ -146,7 +146,10 @@ def load_report(path: Path | str = SAMPLE_MATCH) -> MatchReport:
     for team in (data["h_team"], data["a_team"]):
         team_shots = [s for s in shots if s.team == team]
         if sum(s.is_goal for s in team_shots) != goals[team]:
-            raise ValueError(f"{team}: shot goal total disagrees with scoreline; normalize incomplete or own-goal feeds first")
+            raise ValueError(
+                f"{team}: shot goal total disagrees with scoreline; "
+                "normalize incomplete or own-goal feeds first"
+            )
         teams.append(
             TeamLine(
                 team=team,
@@ -175,6 +178,11 @@ def _nonnegative_integer(value: object, label: str) -> int:
         number = float(value)
     except (ValueError, TypeError, OverflowError) as exc:
         raise ValueError(f"{label} must be a non-negative integer") from exc
-    if isinstance(value, bool) or not math.isfinite(number) or number < 0 or not number.is_integer():
+    if (
+        isinstance(value, bool)
+        or not math.isfinite(number)
+        or number < 0
+        or not number.is_integer()
+    ):
         raise ValueError(f"{label} must be a non-negative integer")
     return int(number)
