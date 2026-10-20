@@ -107,3 +107,18 @@ def test_headline_both_close_when_every_side_is_within_threshold(tmp_path) -> No
     assert report.headline() == (
         "Home 1-0 Away: both sides finished close to their xG (1.01 total xG across 3 shots)."
     )
+
+
+def test_headline_does_not_name_an_xg_leader_on_a_tie(tmp_path) -> None:
+    # Both sides created 1.00 xG; Home 0 goals fell short, Away 1 goal did not.
+    report = _report_from(tmp_path, [(0.5, False), (0.5, False)], [(0.5, True), (0.5, False)])
+    assert report.headline() == "Home finished below its xG (0 goals from 1.00 xG)."
+
+
+def test_headline_threshold_uses_the_displayed_two_dp_gap(tmp_path) -> None:
+    # 3 - 2.95 is 0.04999... in floating point but displays as +0.05.
+    report = _report_from(tmp_path, [(0.95, True), (1.0, True), (1.0, True)], [(0.01, False)])
+    assert report.teams[0].xG_diff == 0.05
+    assert report.headline() == (
+        "Home scored 3 from 2.95 xG (+0.05) - the scoreline ran ahead of the chances created."
+    )

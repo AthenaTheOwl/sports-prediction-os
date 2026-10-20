@@ -32,7 +32,7 @@ uv run sports-os show              # ranked shot table + headline finding (offli
 uv run sports-os registry          # dump the source registry
 uv run sports-os ingest understat --match-id 12345 --offline  # use the bundled fixture
 uv run sports-os analyze           # placeholder; lands in spec 0002
-uv run pytest                      # 61 tests, all green offline
+uv run pytest                      # 63 tests, all green offline
 ```
 
 ## Known limits

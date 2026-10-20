@@ -47,8 +47,12 @@ class TeamLine:
 
     @property
     def xG_diff(self) -> float:
-        """Actual goals minus expected goals. Positive = overperformed."""
-        return self.goals - self.xG
+        """Actual goals minus expected goals, to 2 dp. Positive = overperformed.
+
+        Rounded so the 0.05 thresholds in ``headline`` agree with the value
+        the CLI and Streamlit tables display.
+        """
+        return round(self.goals - self.xG, 2)
 
 
 @dataclass(frozen=True)
@@ -77,7 +81,8 @@ class MatchReport:
         return sorted(self.shots, key=lambda s: s.xG, reverse=True)[:n]
 
     def headline(self) -> str:
-        """One-line finding: which side most out-shot its own xG.
+        """One-line finding: the side that most beat its xG, or, if none did,
+        the side whose finishing fell short.
 
         We compare each team's actual goals against the xG it generated.
         The bigger the gap, the more the result leaned on finishing (or
@@ -98,9 +103,10 @@ class MatchReport:
                 f"({self.total_xG:.2f} total xG across {len(self.shots)} shots)."
             )
         # No side beat its xG, and at least one fell short. Only call a side
-        # the xG leader when it actually created the most xG.
+        # the xG leader when it created strictly more xG than every other side.
         xg_leader = max(self.teams, key=lambda t: t.xG)
-        if xg_leader.xG_diff <= -0.05:
+        others = [t for t in self.teams if t is not xg_leader]
+        if xg_leader.xG_diff <= -0.05 and all(xg_leader.xG > t.xG for t in others):
             return (
                 f"{xg_leader.team} led the xG count yet the finishing lagged "
                 f"({xg_leader.goals} goals from {xg_leader.xG:.2f} xG)."

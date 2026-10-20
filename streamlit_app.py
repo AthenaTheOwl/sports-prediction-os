@@ -67,7 +67,8 @@ c1.metric("shots", len(shots))
 c2.metric("total xG", f"{total_xg:.2f}")
 c3.metric("goals", total_goals)
 
-# Headline finding: which side most out-scored its own xG.
+# Headline finding: the side that most beat its xG, or, if none did, the side
+# whose finishing fell short. Mirrors MatchReport.headline().
 team_rows = []
 for team in (h_team, a_team):
     sub = shots[shots["team"] == team]
@@ -98,7 +99,9 @@ elif all(abs(r["G-xG"]) < 0.05 for r in team_rows):
         f"both sides finished close to their xG "
         f"({total_xg:.2f} total xG across {len(shots)} shots)."
     )
-elif xg_leader["G-xG"] <= -0.05:
+elif xg_leader["G-xG"] <= -0.05 and all(
+    xg_leader["xG"] > r["xG"] for r in team_rows if r is not xg_leader
+):
     headline = (
         f"{xg_leader['team']} led the xG count yet the finishing lagged "
         f"({xg_leader['goals']} goals from {xg_leader['xG']:.2f} xG)."
