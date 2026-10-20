@@ -112,6 +112,7 @@ uv run sports-os show        # ranked read of the committed sample match
 src/sports_os/        cli, analysis, sources (understat fetcher), registry, ops
 data/sample/          the committed sample match show + streamlit both read
 specs/  ops/          spec 0001/0003, STATUS.md, and the run ledger
+docs/                 method notes (match-artifact integrity + proposed eval split)
 streamlit_app.py      the interactive surface over the same read
 ```
 
@@ -122,13 +123,12 @@ fixture fallback) run today; the socceraction/StatsBomb integration, the deploye
 Streamlit demo, and the first weekly eval run are the next passes. See
 [ops/STATUS.md](ops/STATUS.md).
 
+Loader integrity rules and the proposed eval split:
+[A shot-quality summary requires a coherent match artifact](docs/match-integrity-and-evaluation.md).
+
 ## License
 
 MIT (code). Derived data inherits the StatsBomb terms cascade (NC-SA), documented
 per dataset. See [LICENSE](LICENSE).
 
 Portfolio: door N° 21 in the AthenaTheOwl portfolio.
-
-## Method update
-
-[A shot-quality summary requires a coherent match artifact](docs/match-integrity-and-evaluation.md).

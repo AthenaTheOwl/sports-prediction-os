@@ -1,6 +1,6 @@
 # STATUS — sports-prediction-os
 
-Last updated: 2026-07-05
+Last updated: 2026-10-19
 
 ## Current state
 
@@ -14,6 +14,11 @@ Last updated: 2026-07-05
 
 ## What just landed
 
+- `src/sports_os/analysis.py` — `load_report` rejects nonfinite or
+  out-of-range xG, shots for a team outside the match, and invalid or
+  mismatched scorelines; the headline finding no longer misnames the xG
+  leader when no side beats its xG. See
+  `docs/match-integrity-and-evaluation.md`.
 - `src/sports_os/ops/run_manifest.py` — typed RunManifest record,
   content-hashed id, date-bucketed ledger layout.
 - `ops/runs/` ledger directory (gitignored entries; the `.gitkeep`
@@ -27,7 +32,7 @@ uv run sports-os show              # ranked shot table + headline finding (offli
 uv run sports-os registry          # dump the source registry
 uv run sports-os ingest understat --match-id 12345 --offline  # use the bundled fixture
 uv run sports-os analyze           # placeholder; lands in spec 0002
-uv run pytest                      # 34 tests, all green offline
+uv run pytest                      # 63 tests, all green offline
 ```
 
 ## Known limits

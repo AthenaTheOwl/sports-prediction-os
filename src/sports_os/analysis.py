@@ -47,8 +47,12 @@ class TeamLine:
 
     @property
     def xG_diff(self) -> float:
-        """Actual goals minus expected goals. Positive = overperformed."""
-        return self.goals - self.xG
+        """Actual goals minus expected goals, to 2 dp. Positive = overperformed.
+
+        Rounded so the 0.05 thresholds in ``headline`` agree with the value
+        the CLI and Streamlit tables display.
+        """
+        return round(self.goals - self.xG, 2)
 
 
 @dataclass(frozen=True)
@@ -77,7 +81,8 @@ class MatchReport:
         return sorted(self.shots, key=lambda s: s.xG, reverse=True)[:n]
 
     def headline(self) -> str:
-        """One-line finding: which side most out-shot its own xG.
+        """One-line finding: the side that most beat its xG, or, if none did,
+        the side whose finishing fell short.
 
         We compare each team's actual goals against the xG it generated.
         The bigger the gap, the more the result leaned on finishing (or
@@ -87,19 +92,29 @@ class MatchReport:
             return "no shot data in artifact."
         leader = max(self.teams, key=lambda t: t.xG_diff)
         gap = leader.xG_diff
-        if abs(gap) < 0.05:
-            return (
-                f"{self.scoreline}: both sides finished close to their xG "
-                f"({self.total_xG:.2f} total xG across {len(self.shots)} shots)."
-            )
-        if gap > 0:
+        if gap >= 0.05:
             return (
                 f"{leader.team} scored {leader.goals} from {leader.xG:.2f} xG "
                 f"(+{gap:.2f}) - the scoreline ran ahead of the chances created."
             )
+        if all(abs(t.xG_diff) < 0.05 for t in self.teams):
+            return (
+                f"{self.scoreline}: both sides finished close to their xG "
+                f"({self.total_xG:.2f} total xG across {len(self.shots)} shots)."
+            )
+        # No side beat its xG, and at least one fell short. Only call a side
+        # the xG leader when it created strictly more xG than every other side.
+        xg_leader = max(self.teams, key=lambda t: t.xG)
+        others = [t for t in self.teams if t is not xg_leader]
+        if xg_leader.xG_diff <= -0.05 and all(xg_leader.xG > t.xG for t in others):
+            return (
+                f"{xg_leader.team} led the xG count yet the finishing lagged "
+                f"({xg_leader.goals} goals from {xg_leader.xG:.2f} xG)."
+            )
+        laggard = min(self.teams, key=lambda t: t.xG_diff)
         return (
-            f"{leader.team} led the xG count yet the finishing lagged "
-            f"({leader.goals} goals from {leader.xG:.2f} xG)."
+            f"{laggard.team} finished below its xG "
+            f"({laggard.goals} goals from {laggard.xG:.2f} xG)."
         )
 
 
@@ -146,7 +161,10 @@ def load_report(path: Path | str = SAMPLE_MATCH) -> MatchReport:
     for team in (data["h_team"], data["a_team"]):
         team_shots = [s for s in shots if s.team == team]
         if sum(s.is_goal for s in team_shots) != goals[team]:
-            raise ValueError(f"{team}: shot goal total disagrees with scoreline; normalize incomplete or own-goal feeds first")
+            raise ValueError(
+                f"{team}: shot goal total disagrees with scoreline; "
+                "normalize incomplete or own-goal feeds first"
+            )
         teams.append(
             TeamLine(
                 team=team,
@@ -175,6 +193,11 @@ def _nonnegative_integer(value: object, label: str) -> int:
         number = float(value)
     except (ValueError, TypeError, OverflowError) as exc:
         raise ValueError(f"{label} must be a non-negative integer") from exc
-    if isinstance(value, bool) or not math.isfinite(number) or number < 0 or not number.is_integer():
+    if (
+        isinstance(value, bool)
+        or not math.isfinite(number)
+        or number < 0
+        or not number.is_integer()
+    ):
         raise ValueError(f"{label} must be a non-negative integer")
     return int(number)

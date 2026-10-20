@@ -67,7 +67,8 @@ c1.metric("shots", len(shots))
 c2.metric("total xG", f"{total_xg:.2f}")
 c3.metric("goals", total_goals)
 
-# Headline finding: which side most out-scored its own xG.
+# Headline finding: the side that most beat its xG, or, if none did, the side
+# whose finishing fell short. Mirrors MatchReport.headline().
 team_rows = []
 for team in (h_team, a_team):
     sub = shots[shots["team"] == team]
@@ -86,20 +87,29 @@ team_df = pd.DataFrame(team_rows)
 
 leader = max(team_rows, key=lambda r: r["G-xG"])
 gap = leader["G-xG"]
-if abs(gap) < 0.05:
-    headline = (
-        f"both sides finished close to their xG "
-        f"({total_xg:.2f} total xG across {len(shots)} shots)."
-    )
-elif gap > 0:
+xg_leader = max(team_rows, key=lambda r: r["xG"])
+laggard = min(team_rows, key=lambda r: r["G-xG"])
+if gap >= 0.05:
     headline = (
         f"{leader['team']} scored {leader['goals']} from {leader['xG']:.2f} xG "
         f"(+{gap:.2f}) - the scoreline ran ahead of the chances created."
     )
+elif all(abs(r["G-xG"]) < 0.05 for r in team_rows):
+    headline = (
+        f"both sides finished close to their xG "
+        f"({total_xg:.2f} total xG across {len(shots)} shots)."
+    )
+elif xg_leader["G-xG"] <= -0.05 and all(
+    xg_leader["xG"] > r["xG"] for r in team_rows if r is not xg_leader
+):
+    headline = (
+        f"{xg_leader['team']} led the xG count yet the finishing lagged "
+        f"({xg_leader['goals']} goals from {xg_leader['xG']:.2f} xG)."
+    )
 else:
     headline = (
-        f"{leader['team']} led the xG count yet the finishing lagged "
-        f"({leader['goals']} goals from {leader['xG']:.2f} xG)."
+        f"{laggard['team']} finished below its xG "
+        f"({laggard['goals']} goals from {laggard['xG']:.2f} xG)."
     )
 st.info(headline)
 
@@ -137,8 +147,9 @@ st.divider()
 st.subheader("analyze your own match")
 st.caption(
     "drive the actual engine — `sports_os.analysis.load_report` — on a match you "
-    "edit. change a shot's xG or result, add a shot, flip the score, and the "
-    "ranked report + the one-line finding recompute live. it's the real value "
+    "edit. change a shot's xG, add a shot, or turn a shot into a goal (and bump "
+    "that side's score to match), and the ranked report + the one-line finding "
+    "recompute live. it's the real value "
     "layer, not the lookup above."
 )
 
@@ -163,7 +174,8 @@ try:
 
     st.caption(
         "a shot needs at least `team`, `xG`, and `result`. set `result` to "
-        '`"Goal"` to count it as a goal. teams must be `h_team` / `a_team` above.'
+        '`"Goal"` to count it as a goal. teams must be `h_team` / `a_team` above, '
+        "and `h_goals` / `a_goals` must equal each side's `\"Goal\"` shots."
     )
     raw = st.text_area(
         "match json (edit me)",
@@ -190,7 +202,8 @@ try:
             except (KeyError, ValueError, TypeError) as exc:
                 st.error(
                     f"the engine rejected this match ({type(exc).__name__}: {exc}). "
-                    "check that h_team / a_team and every shot's fields are present."
+                    "check that h_team / a_team and every shot's fields are present, "
+                    "and that each side's score matches its `Goal` shots."
                 )
             else:
                 st.markdown(f"#### {report.scoreline}")
